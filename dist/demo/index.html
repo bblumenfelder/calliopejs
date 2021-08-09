@@ -1,0 +1,132 @@
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+</head>
+
+<body class="p-4">
+<div class="flex flex-row justify-between">
+
+    <div class="w-1/2 p-4 border border-gray-300 rounded">
+        <h1>Input:</h1>
+        <textarea name="" id="input" cols="30" rows="1"></textarea>
+    </div>
+    <div class="w-1/2 p-4 border border-gray-300 rounded">
+        <h1>Result:</h1>
+        <div id="result"></div>
+    </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script src="../../src/macronize.js"></script>
+<script>
+
+</script>
+<script>
+
+
+    function decodeHtml (html) {
+        var txt = document.createElement("textarea");
+        txt.innerHTML = html;
+        return txt.value;
+    }
+
+
+
+    async function normalize (Verse) {
+
+        const replaceLetter = (search, replace, Verse) => {
+            return new Promise(async (resolve, reject) => {
+                resolve(Verse.replace(search, replace));
+            });
+        }
+
+
+
+        const substitutionLookupTable = {
+            "aē": "ae",
+            "oē": "oe",
+            "ă": "a",
+            "ĕ": "e",
+            "ĭ": "i",
+            "ŏ": "o",
+            "ŭ": "u",
+        }
+
+
+
+        for await (let key of Object.entries(substitutionLookupTable)) {
+            let search = key;
+            let replace = substitutionLookupTable[search];
+            Verse = await replaceLetter(search, replace, Verse)
+        }
+
+
+
+    }
+
+
+
+    function transcribe (EncodedVerse) {
+        console.log(EncodedVerse)
+        return EncodedVerse.replaceAll("&#772;", "=").replaceAll("&#774;", "*")
+    }
+
+
+
+    function getMeter (TranscribedVerse) {
+        return TranscribedVerse.split('').map(letter => {
+            if (letter === "=") {
+                return "¯"
+            } else if (letter === "*") {
+                return "˘"
+            } else {
+                return ' '
+            }
+        }).join("") + "x"
+
+    }
+
+
+
+    function sanitizeMeter (Meter) {
+        let MeterArray = Meter.split("");
+        return Meter.split("").map((letter, index) => {
+            let nextletter = Meter.split("")[index + 1]
+            if (letter === " " && (nextletter === "¯" || nextletter === "˘" || nextletter === "x")) {
+                return null;
+            }
+            return letter;
+        }).filter(letter => letter).join("")
+
+    }
+
+
+
+    // hB25R4Q8LEkamP3C
+    let Input = 'Arma virumque cano Troiae qui primus ab oris';
+
+    let Macronized = Macronize(Input);
+    let Unescaped = decodeHtml(Macronized);
+    let Transcribed = transcribe(Macronized);
+    let Replaced = getMeter(Transcribed);
+    let SanitizedMeter = sanitizeMeter(Replaced)
+    //console.log(SanitizedMeter)
+    //console.log(Input)
+
+    /*        fetch('http://173.212.238.57/hexameter', {
+                method: 'POST',
+                body: JSON.stringify({ "verse": Unescaped }),
+            })
+                .then(response => response.json())
+                .then(result => {
+                    console.log('Success:', result);
+                })*/
+
+
+</script>
+
+</body>
+
+</html>
